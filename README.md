@@ -26,7 +26,7 @@
 - 💻 Web Developer
 - 🧠 Always learning new tech
 - ⚡ Love building creative and futuristic projects
-- 🔐 Like finding small security breaches on websites
+- 🔐 Like finding small security breaches on websites, just for fun
 - 💬 Discord: **doodlyyousuf**
 
 ---
