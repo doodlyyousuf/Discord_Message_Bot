@@ -26,7 +26,7 @@
 - 💻 Web Developer
 - 🧠 Always learning new tech
 - ⚡ Love building creative and futuristic projects
-- 💬 Discord: **Doodlyyousuf#6171**
+- 💬 Discord: **doodlyyousuf**
 
 ---
 
@@ -99,8 +99,25 @@ and many others...
 <a href="https://github.com/doodlyyousuf">
   <img src="https://img.shields.io/badge/GitHub-doodlyyousuf-0B69FF?style=for-the-badge&logo=github&logoColor=white" alt="github" />
 </a>
+<a href="https://instagram.com/doodlyyousuf">
+  <img src="https://img.shields.io/badge/Instagram-doodlyyousuf-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="instagram" />
+</a>
+<a href="https://facebook.com/doodlyyousuf">
+  <img src="https://img.shields.io/badge/Facebook-doodlyyousuf-1877F2?style=for-the-badge&logo=facebook&logoColor=white" alt="facebook" />
+</a>
+<a href="https://www.threads.net/@doodlyyousuf">
+  <img src="https://img.shields.io/badge/Threads-doodlyyousuf-000000?style=for-the-badge&logo=threads&logoColor=white" alt="threads" />
+</a>
+<img src="https://img.shields.io/badge/Discord-doodlyyousuf-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="discord" />
+<img src="https://img.shields.io/badge/WhatsApp-doodlyyousuf-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="whatsapp" />
+<a href="https://namemc.com/profile/doodlyyousuf">
+  <img src="https://img.shields.io/badge/NameMC-doodlyyousuf-121212?style=for-the-badge&logo=minecraft&logoColor=white" alt="namemc" />
+</a>
+<a href="https://guns.lol/doodlyyousuf">
+  <img src="https://img.shields.io/badge/guns.lol-doodlyyousuf-0B69FF?style=for-the-badge" alt="guns.lol" />
+</a>
 
-Follow for cool projects and experiments - always building something new.
+and many others - all under the name **doodlyyousuf**.
 
 </div>
 
