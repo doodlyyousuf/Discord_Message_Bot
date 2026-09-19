@@ -1343,6 +1343,15 @@ body:not(.authed) .content {
   text-align: left;
 }
 
+.login-switch {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.login-switch .text-button {
+  font-size: 13px;
+}
+
 /* User chip */
 .user-chip {
   display: flex;

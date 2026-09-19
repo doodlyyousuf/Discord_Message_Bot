@@ -780,15 +780,23 @@ async function checkAuth() {
   }
 }
 
-function showLogin(needsSetup) {
-  state.authMode = needsSetup ? 'register' : 'login';
-  $('#loginTitle').textContent = needsSetup ? 'Create your account' : 'Welcome back';
-  $('#loginSubtitle').textContent = needsSetup
-    ? 'Set up the first account to secure this app.'
+function setAuthMode(mode) {
+  state.authMode = mode;
+  const register = mode === 'register';
+  $('#loginTitle').textContent = register ? 'Create your account' : 'Welcome back';
+  $('#loginSubtitle').textContent = register
+    ? 'Pick a username and password to get started.'
     : 'Sign in to manage your schedules.';
-  $('#loginSubmitLabel').textContent = needsSetup ? 'Create account' : 'Sign in';
-  $('#loginPassword').setAttribute('autocomplete', needsSetup ? 'new-password' : 'current-password');
+  $('#loginSubmitLabel').textContent = register ? 'Create account' : 'Sign in';
+  $('#loginToggle').textContent = register
+    ? 'Already have an account? Sign in'
+    : 'New here? Create an account';
+  $('#loginPassword').setAttribute('autocomplete', register ? 'new-password' : 'current-password');
   $('#loginError').textContent = '';
+}
+
+function showLogin(needsSetup) {
+  setAuthMode(needsSetup ? 'register' : 'login');
   document.body.classList.remove('authed');
 }
 
@@ -857,6 +865,9 @@ async function init() {
   bindEvents();
 
   $('#loginForm').addEventListener('submit', submitLogin);
+  $('#loginToggle').addEventListener('click', () => {
+    setAuthMode(state.authMode === 'register' ? 'login' : 'register');
+  });
   $('#logoutBtn').addEventListener('click', logout);
 
   const auth = await checkAuth();

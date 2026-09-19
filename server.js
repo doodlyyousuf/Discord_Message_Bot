@@ -157,22 +157,26 @@ async function handleApi(req, res, url) {
   }
 
   if (pathname === '/api/auth/register' && method === 'POST') {
-    if (store.userCount() > 0) {
-      return sendJson(res, 403, { error: 'An account already exists. Please sign in.' });
-    }
     const { username, password } = await readBody(req);
-    if (!username || !String(username).trim()) return sendJson(res, 400, { error: 'Username is required' });
-    if (!password || String(password).length < 4) {
-      return sendJson(res, 400, { error: 'Password must be at least 4 characters' });
+    const name = String(username || '').trim();
+    const pass = String(password || '');
+    if (name.length < 3 || name.length > 32) {
+      return sendJson(res, 400, { error: 'Username must be 3-32 characters' });
+    }
+    if (!/^[A-Za-z0-9._-]+$/.test(name)) {
+      return sendJson(res, 400, { error: 'Username may only contain letters, numbers, dot, dash or underscore' });
+    }
+    if (pass.length < 6) {
+      return sendJson(res, 400, { error: 'Password must be at least 6 characters' });
     }
     try {
-      const user = store.createUser(username, password);
+      const user = store.createUser(name, pass);
       const token = store.createSession(user.id);
       store.addLog('info', `User "${user.username}" created`);
       return sendJson(res, 200, { ok: true, user }, { 'Set-Cookie': sessionCookie(token) });
     } catch (err) {
-      const msg = /UNIQUE/.test(err.message) ? 'That username is taken' : err.message;
-      return sendJson(res, 400, { error: msg });
+      const taken = /UNIQUE/i.test(err.message);
+      return sendJson(res, taken ? 409 : 400, { error: taken ? 'That username is taken' : err.message });
     }
   }
 
