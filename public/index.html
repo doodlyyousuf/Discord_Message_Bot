@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discord Scheduler</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1" />
+  <link rel="alternate icon" type="image/webp" href="logo.webp?v=1" />
+  <link rel="stylesheet" href="styles.css?v=7" />
+</head>
+<body>
+  <!-- Animated background -->
+  <div class="animated-bg" id="animatedBg" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+  </div>
+
+  <!-- Login screen -->
+  <section class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <img class="login-logo" src="logo.webp?v=1" alt="Discord Scheduler" />
+      <h2 id="loginTitle">Welcome back</h2>
+      <p class="muted" id="loginSubtitle">Sign in to manage your schedules.</p>
+      <form id="loginForm">
+        <label class="text-field outlined">
+          <input type="text" id="loginUsername" placeholder=" " autocomplete="username" />
+          <span class="field-label">Username</span>
+        </label>
+        <label class="text-field outlined">
+          <input type="password" id="loginPassword" placeholder=" " autocomplete="current-password" />
+          <span class="field-label">Password</span>
+        </label>
+        <p class="login-error" id="loginError"></p>
+        <button type="submit" class="filled-button login-submit" id="loginSubmit">
+          <span class="material-symbols-rounded">login</span>
+          <span id="loginSubmitLabel">Sign in</span>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Top app bar -->
+  <header class="top-app-bar">
+    <div class="app-bar-inner">
+      <div class="brand">
+        <img class="brand-logo" src="logo.webp?v=1" alt="Discord Scheduler logo" />
+        <div class="brand-text">
+          <h1>Discord Scheduler</h1>
+          <p>Bot API &middot; Material Design 3</p>
+        </div>
+      </div>
+
+      <div class="app-bar-actions">
+        <button class="icon-button" id="motionToggle" title="Toggle background animation" aria-label="Toggle background animation">
+          <span class="material-symbols-rounded" id="motionIcon">animation</span>
+        </button>
+        <div class="theme-picker">
+          <button class="icon-button" id="accentBtn" title="Color theme" aria-label="Color theme">
+            <span class="material-symbols-rounded" id="accentIcon">water_drop</span>
+          </button>
+          <div class="theme-menu" id="themeMenu" hidden></div>
+        </div>
+        <button class="icon-button" id="themeToggle" title="Toggle light / dark" aria-label="Toggle light / dark">
+          <span class="material-symbols-rounded" id="themeIcon">dark_mode</span>
+        </button>
+        <div class="connection-chip" id="connectionChip" title="Connection status">
+          <span class="status-dot"></span>
+          <span id="connectionLabel">Disconnected</span>
+        </div>
+        <div class="user-chip" id="userChip">
+          <span class="material-symbols-rounded">account_circle</span>
+          <span id="userName">account</span>
+          <button class="icon-button user-logout" id="logoutBtn" title="Sign out" aria-label="Sign out">
+            <span class="material-symbols-rounded">logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation tabs -->
+    <nav class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" data-view="dashboard">
+        <span class="material-symbols-rounded">space_dashboard</span> Dashboard
+      </button>
+      <button class="nav-tab" data-view="messages">
+        <span class="material-symbols-rounded">forum</span> Messages
+      </button>
+      <button class="nav-tab" data-view="tasks">
+        <span class="material-symbols-rounded">alarm</span> Tasks
+      </button>
+      <button class="nav-tab" data-view="connection">
+        <span class="material-symbols-rounded">settings</span> Connection
+      </button>
+    </nav>
+  </header>
+
+  <main class="content">
+    <!-- ============================ DASHBOARD ============================ -->
+    <section class="view active" id="view-dashboard">
+      <div class="section-head">
+        <div>
+          <h2>Dashboard</h2>
+          <p class="muted">Overview of your scheduled messaging.</p>
+        </div>
+        <button class="filled-button" id="gotoTasksBtn">
+          <span class="material-symbols-rounded">add</span> New task
+        </button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="card stat-card">
+          <span class="stat-icon material-symbols-rounded">forum</span>
+          <div>
+            <div class="stat-value" id="statMessages">0</div>
+            <div class="stat-label">Total messages</div>
+          </div>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-icon material-symbols-rounded">bolt</span>
+          <div>
+            <div class="stat-value" id="statActive">0</div>
+            <div class="stat-label">Active tasks</div>
+          </div>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-icon material-symbols-rounded">outgoing_mail</span>
+          <div>
+            <div class="stat-value" id="statSentToday">0</div>
+            <div class="stat-label">Sent today</div>
+          </div>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-icon material-symbols-rounded">verified</span>
+          <div>
+            <div class="stat-value" id="statTotalSent">0</div>
+            <div class="stat-label">Sent all-time</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card activity-card">
+        <div class="card-head">
+          <h3><span class="material-symbols-rounded">history</span> Activity log</h3>
+          <button class="text-button" id="clearLogsBtn">Clear</button>
+        </div>
+        <ul class="log-list" id="dashboardLogs">
+          <li class="empty-state">No activity yet.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================ MESSAGES ============================ -->
+    <section class="view" id="view-messages">
+      <div class="section-head">
+        <div>
+          <h2>Messages</h2>
+          <p class="muted">Manage the pool of messages sent by your tasks.</p>
+        </div>
+        <div class="head-actions">
+          <button class="tonal-button" id="importBtn">
+            <span class="material-symbols-rounded">upload_file</span> Import
+          </button>
+          <button class="filled-button" id="addMessageBtn">
+            <span class="material-symbols-rounded">add</span> Add
+          </button>
+        </div>
+      </div>
+
+      <div class="card toolbar">
+        <label class="search-field">
+          <span class="material-symbols-rounded">search</span>
+          <input type="search" id="messageSearch" placeholder="Search messages" />
+        </label>
+        <div class="toolbar-right">
+          <span class="muted" id="messageCountLabel">0 messages</span>
+          <button class="text-button danger-text" id="clearMessagesBtn">
+            <span class="material-symbols-rounded">delete_sweep</span> Clear all
+          </button>
+        </div>
+      </div>
+
+      <ul class="message-list" id="messageList">
+        <li class="empty-state card">No messages yet. Add one or import a file.</li>
+      </ul>
+
+      <div class="pagination" id="messagePagination">
+        <button class="tonal-button" id="prevPage">
+          <span class="material-symbols-rounded">chevron_left</span> Prev
+        </button>
+        <span class="muted" id="pageLabel">Page 1</span>
+        <button class="tonal-button" id="nextPage">
+          Next <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================== TASKS ============================== -->
+    <section class="view" id="view-tasks">
+      <div class="section-head">
+        <div>
+          <h2>Tasks</h2>
+          <p class="muted">Schedule messages to a channel within a time window.</p>
+        </div>
+        <button class="filled-button" id="newTaskBtn">
+          <span class="material-symbols-rounded">add</span> New task
+        </button>
+      </div>
+
+      <div class="task-grid" id="taskList">
+        <div class="card empty-state">No tasks yet. Create your first schedule.</div>
+      </div>
+    </section>
+
+    <!-- ============================ CONNECTION =========================== -->
+    <section class="view" id="view-connection">
+      <div class="section-head">
+        <div>
+          <h2>Connection</h2>
+          <p class="muted">Authenticate with an official Discord bot token.</p>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head">
+            <h3><span class="material-symbols-rounded">key</span> Bot token</h3>
+          </div>
+          <p class="muted small">
+            Create a bot in the
+            <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">Discord Developer Portal</a>,
+            enable the <strong>Message Content</strong> intent, and invite it to your server.
+            Tokens are used with the official <code>Bot</code> auth scheme only.
+          </p>
+          <label class="text-field filled">
+            <input type="password" id="tokenInput" placeholder=" " autocomplete="off" />
+            <span class="field-label">Bot token</span>
+          </label>
+          <div class="row-actions">
+            <button class="filled-button" id="connectBtn">
+              <span class="material-symbols-rounded">link</span> Connect
+            </button>
+            <button class="tonal-button" id="disconnectBtn">
+              <span class="material-symbols-rounded">link_off</span> Disconnect
+            </button>
+          </div>
+          <div class="inline-status" id="connectionDetail">Not connected.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3><span class="material-symbols-rounded">hub</span> Server &amp; channel</h3>
+          </div>
+          <label class="text-field outlined">
+            <select id="guildSelect" disabled>
+              <option value="">Select a server</option>
+            </select>
+            <span class="field-label">Server</span>
+          </label>
+          <label class="text-field outlined">
+            <select id="channelSelect" disabled>
+              <option value="">Select a channel</option>
+            </select>
+            <span class="field-label">Channel</span>
+          </label>
+          <button class="tonal-button" id="refreshGuilds">
+            <span class="material-symbols-rounded">refresh</span> Refresh servers
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================== DIALOGS ============================== -->
+  <!-- Message dialog -->
+  <dialog class="md-dialog" id="messageDialog">
+    <form method="dialog">
+      <h3 id="messageDialogTitle">Add message</h3>
+      <label class="text-field outlined">
+        <textarea id="messageContent" rows="4" placeholder=" "></textarea>
+        <span class="field-label">Message content</span>
+      </label>
+      <div class="dialog-actions">
+        <button class="text-button" value="cancel">Cancel</button>
+        <button class="filled-button" id="saveMessageBtn" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Import dialog -->
+  <dialog class="md-dialog" id="importDialog">
+    <form method="dialog">
+      <h3>Import messages</h3>
+      <p class="muted small">Upload a <strong>.txt</strong> (one message per line) or <strong>.csv</strong> file (first column is used).</p>
+      <input type="file" id="importFile" accept=".txt,.csv,text/plain,text/csv" class="file-input" />
+      <label class="switch-row">
+        <span>First row is a header</span>
+        <input type="checkbox" id="hasHeader" class="switch" />
+      </label>
+      <label class="text-field outlined">
+        <textarea id="importPaste" rows="4" placeholder=" "></textarea>
+        <span class="field-label">Or paste messages (one per line)</span>
+      </label>
+      <div class="dialog-actions">
+        <button class="text-button" value="cancel">Cancel</button>
+        <button class="filled-button" id="confirmImportBtn" value="import">Import</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Task dialog -->
+  <dialog class="md-dialog wide" id="taskDialog">
+    <form method="dialog">
+      <h3 id="taskDialogTitle">New task</h3>
+      <label class="text-field outlined">
+        <input type="text" id="taskName" placeholder=" " />
+        <span class="field-label">Task name</span>
+      </label>
+      <div class="field-row">
+        <label class="text-field outlined">
+          <select id="taskGuild"></select>
+          <span class="field-label">Server</span>
+        </label>
+        <label class="text-field outlined">
+          <select id="taskChannel"></select>
+          <span class="field-label">Channel</span>
+        </label>
+      </div>
+      <div class="field-row">
+        <label class="text-field outlined">
+          <input type="time" id="taskStart" value="09:00" />
+          <span class="field-label">Send from</span>
+        </label>
+        <label class="text-field outlined">
+          <input type="time" id="taskEnd" value="21:00" />
+          <span class="field-label">Send until</span>
+        </label>
+      </div>
+      <div class="field-row">
+        <label class="text-field outlined">
+          <input type="number" id="taskMinDelay" min="1" value="30" />
+          <span class="field-label">Min delay (sec)</span>
+        </label>
+        <label class="text-field outlined">
+          <input type="number" id="taskMaxDelay" min="1" value="120" />
+          <span class="field-label">Max delay (sec)</span>
+        </label>
+      </div>
+      <label class="text-field outlined">
+        <select id="taskRunMode">
+          <option value="scheduled">Time window (daily)</option>
+          <option value="continuous">Continuous (until stopped)</option>
+        </select>
+        <span class="field-label">Run mode</span>
+      </label>
+      <label class="text-field outlined">
+        <input type="number" id="taskMaxPerRun" min="0" value="0" />
+        <span class="field-label">Max messages per run (0 = unlimited)</span>
+      </label>
+      <div class="dialog-actions">
+        <button class="text-button" value="cancel">Cancel</button>
+        <button class="filled-button" id="saveTaskBtn" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirm dialog -->
+  <dialog class="md-dialog" id="confirmDialog">
+    <form method="dialog">
+      <h3 id="confirmTitle">Are you sure?</h3>
+      <p class="muted" id="confirmText"></p>
+      <div class="dialog-actions">
+        <button class="text-button" value="cancel">Cancel</button>
+        <button class="filled-button" id="confirmOkBtn" value="ok">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Snackbar -->
+  <div class="snackbar" id="snackbar" role="status" aria-live="polite"></div>
+
+  <script src="theme.js?v=7"></script>
+  <script src="app.js?v=7"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "discord-scheduler",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Material Design 3 message scheduler built on the official Discord Bot API",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
