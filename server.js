@@ -1,3 +1,4 @@
+import './lib/env.js';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,6 +8,7 @@ import * as store from './lib/store.js';
 import * as scheduler from './lib/scheduler.js';
 import { getMe, getGuilds, getTextChannels, DiscordError } from './lib/discord.js';
 import { createRateLimiter, clientIp, enforceRateLimit } from './lib/ratelimit.js';
+import { encryptionEnabled } from './lib/secrets.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -477,6 +479,10 @@ const server = http.createServer(async (req, res) => {
 });
 
 store.normalizeTasks();
+
+if (!encryptionEnabled()) {
+  console.warn('[server] TOKEN_ENC_KEY is not set - the Discord bot token will be stored in plaintext');
+}
 
 server.listen(PORT, HOST, () => {
   console.log(`Discord Scheduler running at http://localhost:${PORT}`);
