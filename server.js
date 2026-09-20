@@ -6,11 +6,43 @@ import { fileURLToPath } from 'node:url';
 import * as store from './lib/store.js';
 import * as scheduler from './lib/scheduler.js';
 import { getMe, getGuilds, getTextChannels, DiscordError } from './lib/discord.js';
+import { createRateLimiter, clientIp, enforceRateLimit } from './lib/ratelimit.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
+const TRUST_PROXY = process.env.TRUST_PROXY === '1';
+
+/* ------------------------------------------------------- abuse protection */
+
+const rateLimitEnabled = process.env.RATE_LIMIT_DISABLED !== '1';
+
+const limiters = {
+  // Broad safety net across every API call.
+  general: createRateLimiter({ windowMs: 60_000, max: Number(process.env.RATE_GENERAL_MAX) || 300, name: 'general' }),
+  // Login + register attempts: slow down brute-force / credential stuffing.
+  auth: createRateLimiter({ windowMs: 15 * 60_000, max: Number(process.env.RATE_AUTH_MAX) || 20, name: 'auth' }),
+  // Account creation: stop bulk sign-ups from a single source.
+  register: createRateLimiter({ windowMs: 60 * 60_000, max: Number(process.env.RATE_REGISTER_MAX) || 5, name: 'register' }),
+  // Mutating calls (create/update/delete/import).
+  write: createRateLimiter({ windowMs: 60_000, max: Number(process.env.RATE_WRITE_MAX) || 120, name: 'write' }),
+};
+
+const isWrite = (method) => method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
+
+function setSecurityHeaders(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('X-XSS-Protection', '0');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+  );
+}
+
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -144,6 +176,12 @@ async function handleApi(req, res, url) {
   const { pathname } = url;
   const method = req.method;
   const segments = pathname.split('/').filter(Boolean); // ['api', ...]
+  const ip = clientIp(req, { trustProxy: TRUST_PROXY });
+
+  if (rateLimitEnabled) {
+    if (!enforceRateLimit(res, limiters.general, `g:${ip}`, sendJson)) return;
+    if (isWrite(method) && !enforceRateLimit(res, limiters.write, `w:${ip}`, sendJson)) return;
+  }
 
   /* ---------------------------------------------------------- auth (public) */
 
@@ -157,6 +195,10 @@ async function handleApi(req, res, url) {
   }
 
   if (pathname === '/api/auth/register' && method === 'POST') {
+    if (rateLimitEnabled) {
+      if (!enforceRateLimit(res, limiters.auth, `a:${ip}`, sendJson)) return;
+      if (!enforceRateLimit(res, limiters.register, `r:${ip}`, sendJson)) return;
+    }
     const { username, password } = await readBody(req);
     const name = String(username || '').trim();
     const pass = String(password || '');
@@ -181,6 +223,7 @@ async function handleApi(req, res, url) {
   }
 
   if (pathname === '/api/auth/login' && method === 'POST') {
+    if (rateLimitEnabled && !enforceRateLimit(res, limiters.auth, `a:${ip}`, sendJson)) return;
     const { username, password } = await readBody(req);
     const user = store.verifyUser(username, password);
     if (!user) return sendJson(res, 401, { error: 'Invalid username or password' });
@@ -418,6 +461,7 @@ function serveStatic(req, res, url) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  setSecurityHeaders(res);
   try {
     if (url.pathname.startsWith('/api/')) {
       await handleApi(req, res, url);
