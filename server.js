@@ -81,11 +81,11 @@ function parseCookies(req) {
 }
 
 function sessionCookie(token) {
-  return `sid=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${30 * 24 * 60 * 60}`;
+  return `sid=${token}; HttpOnly; Secure; Path=/; SameSite=Lax; Max-Age=${30 * 24 * 60 * 60}`;
 }
 
 function clearCookie() {
-  return 'sid=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0';
+  return 'sid=; HttpOnly; Secure; Path=/; SameSite=Lax; Max-Age=0';
 }
 
 function readBody(req) {
