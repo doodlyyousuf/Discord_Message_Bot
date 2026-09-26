@@ -257,14 +257,18 @@ async function handleApi(req, res, url) {
 
   // POST /api/connect
   if (method === 'POST' && pathname === '/api/connect') {
-    const { token } = await readBody(req);
+    const { token, tokenType } = await readBody(req);
     if (!token || !String(token).trim()) {
-      return sendJson(res, 400, { error: 'Bot token is required' });
+      return sendJson(res, 400, { error: 'Token is required' });
+    }
+    const authType = tokenType || 'bot';
+    if (authType !== 'bot' && authType !== 'account') {
+      return sendJson(res, 400, { error: 'Invalid token type. Must be "bot" or "account"' });
     }
     try {
-      const user = await getMe(String(token).trim());
-      store.setConfig({ token: String(token).trim(), connected: true, user: { id: user.id, username: user.username } });
-      store.addLog('success', `Connected to Discord bot: ${user.username}`);
+      const user = await getMe(String(token).trim(), authType);
+      store.setConfig({ token: String(token).trim(), tokenType: authType, connected: true, user: { id: user.id, username: user.username } });
+      store.addLog('success', `Connected to Discord ${authType}: ${user.username}`);
       return sendJson(res, 200, { ok: true, user: { id: user.id, username: user.username }, config: store.publicConfig() });
     } catch (err) {
       const msg = err instanceof DiscordError ? `Discord rejected the token (${err.status}).` : err.message;
@@ -294,7 +298,7 @@ async function handleApi(req, res, url) {
   if (method === 'GET' && pathname === '/api/guilds') {
     if (!store.getToken()) return sendJson(res, 400, { error: 'Not connected' });
     try {
-      const guilds = await getGuilds(store.getToken());
+      const guilds = await getGuilds(store.getToken(), store.getTokenType());
       return sendJson(res, 200, { guilds: (guilds || []).map((g) => ({ id: g.id, name: g.name })) });
     } catch (err) {
       return sendJson(res, 400, { error: err.message });
@@ -305,7 +309,7 @@ async function handleApi(req, res, url) {
   if (method === 'GET' && segments[1] === 'guilds' && segments[3] === 'channels') {
     if (!store.getToken()) return sendJson(res, 400, { error: 'Not connected' });
     try {
-      const channels = await getTextChannels(store.getToken(), segments[2]);
+      const channels = await getTextChannels(store.getToken(), segments[2], store.getTokenType());
       return sendJson(res, 200, { channels });
     } catch (err) {
       return sendJson(res, 400, { error: err.message });

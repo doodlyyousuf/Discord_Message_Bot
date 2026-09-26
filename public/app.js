@@ -3,7 +3,7 @@
    ============================================================ */
 
 const state = {
-  config: { connected: false, hasToken: false, user: null, guildId: null, channelId: null },
+  config: { connected: false, hasToken: false, user: null, guildId: null, channelId: null, tokenType: 'bot' },
   stats: {},
   tasks: [],
   guilds: [],
@@ -235,7 +235,12 @@ function renderConnectionStatus() {
   const label = $('#connectionLabel');
   const online = state.config.connected && state.config.hasToken;
   chip.classList.toggle('online', online);
-  label.textContent = online ? (state.config.user?.username || 'Connected') : 'Disconnected';
+  if (online) {
+    const tokenTypeLabel = state.config.tokenType === 'account' ? ' (Account)' : '';
+    label.textContent = (state.config.user?.username || 'Connected') + tokenTypeLabel;
+  } else {
+    label.textContent = 'Disconnected';
+  }
 }
 
 function renderDashboard() {
@@ -277,7 +282,8 @@ function renderLogs(logs) {
 function renderConnection() {
   const detail = $('#connectionDetail');
   if (state.config.connected && state.config.hasToken) {
-    detail.innerHTML = `Connected as <strong>${escapeHtml(state.config.user?.username || 'bot')}</strong>.`;
+    const tokenTypeLabel = state.config.tokenType === 'account' ? 'Account' : 'Bot';
+    detail.innerHTML = `Connected as <strong>${escapeHtml(state.config.user?.username || 'bot')}</strong> (${tokenTypeLabel}).`;
     $('#disconnectBtn').disabled = false;
   } else {
     detail.textContent = 'Not connected.';
@@ -286,6 +292,11 @@ function renderConnection() {
   $('#guildSelect').disabled = !state.config.connected;
   if (state.config.guildId && $('#guildSelect').value !== state.config.guildId) {
     $('#guildSelect').value = state.config.guildId;
+  }
+  // Restore token type selection
+  const tokenTypeRadio = document.querySelector(`input[name="tokenType"][value="${state.config.tokenType || 'bot'}"]`);
+  if (tokenTypeRadio) {
+    tokenTypeRadio.checked = true;
   }
 }
 
@@ -331,11 +342,12 @@ async function loadChannels(guildId, selectEl) {
 
 async function connectBot() {
   const token = $('#tokenInput').value.trim();
-  if (!token) return toast('Enter a bot token', true);
+  if (!token) return toast('Enter a token', true);
+  const tokenType = document.querySelector('input[name="tokenType"]:checked')?.value || 'bot';
   const btn = $('#connectBtn');
   btn.disabled = true;
   try {
-    const data = await request('POST', '/connect', { token });
+    const data = await request('POST', '/connect', { token, tokenType });
     state.config = data.config;
     toast(`Connected as ${data.user.username}`);
     $('#tokenInput').value = '';
@@ -355,7 +367,7 @@ async function disconnectBot() {
   if (!ok) return;
   try {
     await request('POST', '/disconnect');
-    state.config = { connected: false, hasToken: false, user: null, guildId: null, channelId: null };
+    state.config = { connected: false, hasToken: false, user: null, guildId: null, channelId: null, tokenType: 'bot' };
     $('#guildSelect').innerHTML = '<option value="">Select a server</option>';
     $('#channelSelect').innerHTML = '<option value="">Select a channel</option>';
     toast('Disconnected');
