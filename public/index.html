@@ -237,17 +237,27 @@
       <div class="two-col">
         <div class="card">
           <div class="card-head">
-            <h3><span class="material-symbols-rounded">key</span> Bot token</h3>
+            <h3><span class="material-symbols-rounded">key</span> Discord token</h3>
           </div>
           <p class="muted small">
             Create a bot in the
             <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">Discord Developer Portal</a>,
             enable the <strong>Message Content</strong> intent, and invite it to your server.
-            Tokens are used with the official <code>Bot</code> auth scheme only.
+            Or use your account token (user token) from Discord developer tools.
           </p>
+          <div class="token-type-selector">
+            <label class="radio-label">
+              <input type="radio" name="tokenType" value="bot" checked />
+              <span>Bot token</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="tokenType" value="account" />
+              <span>Account token</span>
+            </label>
+          </div>
           <label class="text-field filled">
             <input type="password" id="tokenInput" placeholder=" " autocomplete="off" />
-            <span class="field-label">Bot token</span>
+            <span class="field-label">Token</span>
           </label>
           <div class="row-actions">
             <button class="filled-button" id="connectBtn">
