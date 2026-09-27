@@ -271,7 +271,12 @@ async function handleApi(req, res, url) {
       store.addLog('success', `Connected to Discord ${authType}: ${user.username}`);
       return sendJson(res, 200, { ok: true, user: { id: user.id, username: user.username }, config: store.publicConfig() });
     } catch (err) {
-      const msg = err instanceof DiscordError ? `Discord rejected the token (${err.status}).` : err.message;
+      let msg = err.message;
+      if (err instanceof DiscordError) {
+        const errorDetails = typeof err.body === 'object' && err.body?.message ? err.body.message : JSON.stringify(err.body);
+        msg = `Discord rejected the token (${err.status}): ${errorDetails}`;
+      }
+      console.error('[connect] Token validation failed:', err);
       return sendJson(res, 400, { error: msg });
     }
   }
